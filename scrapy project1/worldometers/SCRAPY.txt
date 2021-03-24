@@ -1,0 +1,264 @@
+WEB SCRAPING
+generally data extraction from a website
+
+Scrapy is the framework for scraping in python
+FIVE NAIN COMPONENTS
+1. Spider- define what we want to scrape
+ kinds of spider classes
+  - scrapy.spider
+  - CrawlSpider
+  - XMLFeedSpider
+  - CSVFeedSpider
+  - SitemapSpider
+2. Pipeline-used for cleaning, remove duplicates and store data extracted
+3. Middlewares- Request/response
+4.Engine- for coordination
+5.Scheduler-preserves the order of operations
+
+
+INTRODUCTION TO SCRAPY
+IN THE ANACONDA COMMAND PROMPT
+1.create a new environment (virtual workspace)
+2. open terminal of the new environment
+3. enter conda install scrapy==1.6 pylint autopep8 -y
+
+scrapy fetch http://google.com
+scrapy bench
+mkdir projects
+cd projects
+cls #- this command closes the terminal
+scrapy startproject worldometers #- creating a project
+cd worldometer #- change directory to where the project is located
+
+#creating a spider called countries
+scrapy genspider countries www.worldometers.info/world-population/population-by-country
+# note that in the worldometers project, we cannot have two spiders with
+the same name such as countries#
+#In the allowed domains url in the countries.py file do not add the http:// and limit the url to the domain only
+in the starturl remember to add 's' to the http
+
+conda install ipython #-installation
+scrapy shell #-opens up scrapy shell
+exit() #this closes the scrapy shell
+
+# the fetch command
+fetch('https://www.worldometers.info/wo
+    rld-population/population-by-country/') 
+
+#the response command : this shows the html of the website to be scraped
+response.body
+
+#the view command- displays the html in the browser
+view(response) 
+
+#how spiders see a website
+ctrl+shift+i to open up the developer tools
+ctrl+shift+p to open the developer panel
+#disable javascript and the refresh(ctrl+R) the page 
+
+#Element Selection
+Xpath & css selector
+XPATH
+1. disable javascript
+2. click on the inspect symbol and selct what you want to scrape eg. the title
+  alternatively, highlight what you want to scrape, right click and click inspect
+3. To write an xpath expression that will extract
+what we want, we need test it before implementing in
+scrapy.click on Elements -> ctrl+F -> in the search box that 
+appears, type '//h1' i.e the example here is an h1 ta
+4. Chrome will highlight the tag and tell us the number of times
+the tag occurs.
+5. in the scrapy shell input the command: 
+ title=response.xpath('//h1') -> title
+ #this will show the tag in the shell
+6.To retrieve the data element as only the text, input
+title=response.xpath('//h1/text()')
+7. To return title as a string, input title.get()
+
+CSS SELECTORS
+1. title_css=response.css('h1::text')
+
+Scraping countries
+1.click on the selector and select one country to see the tag
+the tag is a inside tag td. so, input countries= countries=response.xpath('//td/a/text()').getall()
+->countries
+
+Building First Spider
+1. in vscode load the worldometer project folder->open the countries.py script
+2. under the parse function input
+   title=response.xpath('//h1/text()').get()
+   countries=response.xpath('//td/a/text()').getall()
+   yield{
+     'title':title,
+     'countries':countries
+   }
+   nb.remove the pass command
+make sure virtual studiois lunched from ANACONDA
+1. click on view ->terminal->input conda activate virtual_workspace
+-> scrapy crawl countries
+
+XPATH EXPRESSIONS AND CSS SELECTORS
+> XPATH stands for xml path language: that is, it is a language that
+was created to query mainly xml files
+> CSS stands for Cascading style sheet: that is,
+it was mainly created to style HTML pages.
+
+CSS SELECTORS FUNDAMENTALS
+Be more specific in tag names
+>selecting tags with class name set to 'intro'
+ code -> .intro
+>selecting tags based on id (eg. id="location")
+ code -> #location
+>selecting a class from a div
+ code -> div.intro
+>selecting an id from a span
+ code -> span#location
+>selecting more than one class/id
+ code -> .bold.italic , #idname1#idname2
+>selecting other attributes that are not part of the 
+html markup
+eg code: li[data-identifier="7"] nb: if our interest is not 
+just in the li attribute, we can remove the tag name
+eg. [data-identifier="7"]
+url selection code based on start: a[href^='https']
+url selection code based on end: a[href$='fr']
+url selection code based on middle: a[href*='google']
+>selecting paragraphs in a div
+ code: div.intro p
+> Selecting all the children of a div
+ code: div.intro > p
+>selecting elements immediately after a div
+ code: div.intro + p
+>selecting elements based on their position
+ code: li:nth-child(1)
+ for first and third li
+ code: li:nth-child(1),li:nth-child(3)
+ alternatively: code: li:nth-child(odd) or code: li:nth-child(even)
+>selecting all elements after a div
+ code: div~p
+
+XPATH FUNDAMENTALS
+>selecting all elements with h1 tag
+ code: //h1
+>selecting a particular div based on its class
+ code: //div[@class='intro'] 
+>selecting paragraphs in a particular div or more div
+ code: //div[@class='intro']/p >code: //div[@class='intro' or @class='outro']/p
+>selecting two or more div
+ code: //div[@class='intro' or @class='outro']
+>selecting text out of paragraphs in different div
+code: //div[@class='intro' or @class='outro']/p/text()
+>selecting url from a tag
+ code: //a[starts-with(@href,'https')]
+       //a[ends-with(@href,'fr')] nb.could be unsupported depending on version of xpath
+       //a[contains(@href,'google')]
+>selecting text from a tag containing a particular word
+ code: //a[contains(text(),'France')]
+>selection based on position
+ code: //ul[@id='items']/li[position()=1 or position()=4]
+       //ul[@id='items']/li[position()=last()]
+       //ul[@id='items']/li[position()>1]
+
+NAVIGATING USING XPATH(GOING UP)
+>searching for a parent of a paragraph
+ code: //p[@id='unique']/parent::div
+       //p[@id='unique']/parent::node()
+       //p[@id='unique']/ancestor::node()
+       //p[@id='unique']/ancestor-or-self::node()
+>selecting preceding elements except parent      
+ code: //p[@id='unique']/preceding::node()
+       //p[@id='unique']/preceding::h1
+>selecting siblings
+code: //p[@id='outside']/preceding-sibling::node()
+
+NAVIGATING USING XPATH(GOING DOWN)
+>selecting the children of a div
+ code: //div[@class='intro']/child::node()
+>selecting elements after a div
+ code: //div[@class='intro']/following::node()
+>selecting elements after a div with same parent
+ code: //div[@class='intro']/following-sibling::node()
+ code: //div[@class='intro']/descendant::node()
+
+PROJECT 1
+SCRAPING COUNTRY NAME AND URL
+> In the countries.py, we want the country name, population and url
+countries=response.xpath('//td/a') : this code returns a list of selector objects. That is, 
+list of all the a elements with urls and country names
+> to see how the output looks like:
+code: scrapy shell "https://www.worldometers.info/world-population/population-by-country/"
+      countries= response.xpath("//td/a")
+      countries
+> Entire implementation in countries.py
+    def parse(self, response):    
+        countries=response.xpath('//td/a')
+        for country in countries:
+            name = country.xpath(".//text()").get()
+            link = country.xpath(".//@href").get()
+            
+        
+        
+        yield{
+              'country_link' :link
+              'country_name' :name
+        }
+> in the terminal type: 
+ cd worldometers
+ scrapy crawl countries
+SCRAPING YEAR AND POPULATION
+
+ABSOLUTE AND RELATIVE URLS
+>absolute urls come with the url of the domain
+>relative urls do not
+1. make sure domain url does not come with an extra forward slash
+2. you can manually join the domain url to the relative url
+   code : absolute url= f"https://www.worldometers.info{relative_url}"
+3. you can use the joinurl command
+   code : absolute_url=response.urljoin(relative_url)
+          yield scrapy.Request(url=absolute_url)
+4. you can use the respose function to yield them all together
+   code : yield response.follow(url=relative_url)
+
+SCRAPING YEAR AND POPULATION
+> to scrape the information of each country, we need to follow each country's 
+url and fetch the information of interest
+1. request the url
+code:def parse(self, response):    
+        countries=response.xpath('//td/a')
+        for country in countries:
+            name = country.xpath(".//text()").get()
+            link = country.xpath(".//@href").get()
+            
+        
+            '''
+            yield{
+              'country_link' :link,
+              'country_name' :name
+              }'''< that is commented and replaced with below
+            
+            yield response.follow(url=link,callback=self.parse_country)
+
+2. fetch the information of interest
+              > enter the first country and inspect page to see
+              where the data is
+              >get the xpath expression for the table
+    code:
+      def parse_country(self, response):
+        rows=response.xpath("(//table[@class='table table-striped table-bordered table-hover table-condensed table-list'])[1]/tbody/tr")
+        for row in rows:
+           year=row.xpath(".//td[1]/text()").get()
+           population=row.xpath(".//td[2]/strong/text()").get()
+           yield {
+             'year':year,
+             'population':population }
+3. enter code in terminal: spider crawl countries
+
+4. getting the country_name
+   yield response.follow(url=link,callback=self.parse_country, meta={'country_name':name}) > in the parse function
+   name=response.request.meta["country_name"] >this code in the parse_country function
+
+BUILDING DATASETS
+scrapy crawl countries -o population_dataset.csv
+
+
+DEALING WITH MULTIPLE PAGES
